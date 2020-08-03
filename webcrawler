@@ -1,0 +1,72 @@
+import requests as req
+res=req.get('https://www.imdb.com/what-to-watch/popular/?ref_=watch_tpks_tab')
+from bs4 import BeautifulSoup
+soup=BeautifulSoup(res.text, 'html.parser')
+
+from IPython.display import Image, display
+counter=soup.find(name='div', attrs={'class': 'FoldSplitterGrid__StyledSubGrid-sc-1owuatb-0'})
+
+title_list=[]
+poster_list=[]
+rank_list=[[] for y in range(12)]
+for i in range(12):
+  rank_list[4].append(0)
+rating_list=[]
+href_list=[]
+buffer=[0 for y in range(4)]
+
+name2=counter.findAll(name='a',attrs={'class':'ipc-poster-card__title'})
+for name2 in name2:
+  title_tag=name2.find(name='span')
+  title_list.append(title_tag.text)
+  href_list.append(name2['href'])
+rating2=counter.findAll(attrs={'class':'ipc-poster-card__rating-star-group'})
+for rating2 in rating2:
+  rating3=rating2.find(name='span')
+  rating=eval(rating3.text)
+  rating_list.append(rating)
+div2=counter.findAll(attrs={'class':'ipc-poster--baseAlt'})
+for div2 in div2:
+  div3=div2.find(attrs={'class':'ipc-media'})
+  image_tag=div3.find(attrs={'class': 'ipc-image'})
+  poster_list.append(image_tag['src'])
+for i in range(12):
+  rank_list[0].append(title_list[i])
+  rank_list[1].append(rating_list[i])
+  rank_list[2].append(poster_list[i])
+  rank_list[3].append(href_list[i])
+
+
+for i in range (10,-1,-1):
+  for j in range (0,i+1,1):
+    if rank_list[1][j]>rank_list[1][j+1]:
+      for k in range(4):
+        buffer[k]=rank_list[k][j+1]
+        rank_list[k][j+1]=rank_list[k][j]
+        rank_list[k][j]=buffer[k]
+
+for i in range(3):
+  res=req.get('https://www.imdb.com/'+ str(rank_list[3][11-i]))
+  soup2=BeautifulSoup(res.text, 'html.parser')
+  summary=soup2.find(name='div', attrs={'class': 'summary_text'})
+  rank_list[4][11-i]=summary.text
+
+print("Top Rated Movies in Most Popular")
+print('')
+for i in range(3):
+  print(rank_list[0][11-i])
+  print(rank_list[1][11-i])
+  display(Image(rank_list[2][11-i]))
+  print(rank_list[4][11-i])
+  print('')
+  print('')
+print("-----------------------------------------------------")
+print("Most Popular")
+i=0
+for cell in counter:
+  print(title_list[i])
+  print(rating_list[i])
+  display(Image(poster_list[i]))
+  print('')
+  i+=1
+                            
